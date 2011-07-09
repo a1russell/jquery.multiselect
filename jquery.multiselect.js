@@ -327,6 +327,20 @@ if (jQuery) (function($) {
     }
   }
 
+
+  // Reassociate labels.
+  function reassociateLabels() {
+    var multiselect = $(this);
+    var multiselectId = multiselect.attr('id');
+    if (multiselectId) {
+      var label = $('label[for="' + multiselectId + '"]');
+      label.bind('click focus', function () {
+        multiselect.focus();
+      });
+    }
+  }
+
+
   $.extend($.fn, {
     multiselect: function (o, callback) {
       // Default options
@@ -414,6 +428,9 @@ if (jQuery) (function($) {
             multiselect.multiselectOptionsHide();
           }
         });
+
+        // Reassociate labels
+        reassociateLabels.call(multiselect);
       });
     },
 
