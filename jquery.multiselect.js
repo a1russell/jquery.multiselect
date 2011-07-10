@@ -6,9 +6,10 @@
 
 if (jQuery) (function($) {
 
+
   // render the html for a single option
   function renderOption(id, option) {
-    var html = '<label><input type="checkbox" name="' + id + '[]" value="' + option.value + '"';
+    var html = '<label><input type="checkbox" name="' + id + '" value="' + option.value + '"';
     if (option.selected) {
       html += ' checked="checked"';
     }
@@ -16,6 +17,7 @@ if (jQuery) (function($) {
 
     return html;
   }
+
 
   // render the html for the options/optgroups
   function renderOptions(id, options, o) {
@@ -42,10 +44,25 @@ if (jQuery) (function($) {
     return html;
   }
 
+
+  // Focus next input
+  function focusNextInput() {
+    var form = $(this).closest('form');
+    var inputs = $(':input:not(.multiselectOptions input), a.multiselect', form);
+    var nextInputs = inputs.slice(inputs.index($(this)) + 1);
+    if (nextInputs) {
+      var nextInput = nextInputs[0];
+      e.preventDefault();
+      nextInput.focus();
+    }
+  }
+
+
   // Building the actual options
   function buildOptions(options) {
     var multiselect = $(this);
-    var multiselectOptions = multiselect.next('.multiselectOptions');
+    var multiselectName = multiselect.nextAll('.multiselectName:first');
+    var multiselectOptions = multiselect.nextAll('.multiselectOptions:first');
     var o = multiselect.data("config");
     var callback = multiselect.data("callback");
 
@@ -59,7 +76,7 @@ if (jQuery) (function($) {
     }
 
     // generate the html for the new options
-    html += renderOptions(multiselect.attr('id'), options, o);
+    html += renderOptions(multiselectName.text(), options, o);
 
     multiselectOptions.html(html);
 
@@ -86,7 +103,7 @@ if (jQuery) (function($) {
     }
 
     // Apply bgiframe if available on IE6
-    if ($.fn.bgiframe) multiselect.next('.multiselectOptions').bgiframe({ width: multiselectOptions.width(), height: multiselectOptions.height() });
+    if ($.fn.bgiframe) multiselect.nextAll('.multiselectOptions:first').bgiframe({ width: multiselectOptions.width(), height: multiselectOptions.height() });
 
     // Handle selectAll oncheck
     if (o.selectAll) {
@@ -147,7 +164,7 @@ if (jQuery) (function($) {
     // Keyboard
     multiselect.keydown(function (e) {
 
-      var multiselectOptions = $(this).next('.multiselectOptions');
+      var multiselectOptions = $(this).nextAll('.multiselectOptions:first');
 
       // Is dropdown visible?
       if (multiselectOptions.css('visibility') != 'hidden') {
@@ -155,7 +172,7 @@ if (jQuery) (function($) {
         // Tab
         if (e.keyCode == 9) {
           $(this).addClass('focus').trigger('click'); // esc, left, right - hide
-          $(this).focus().next(':input').focus();
+          focusNextInput();
           return true;
         }
 
@@ -247,7 +264,7 @@ if (jQuery) (function($) {
         //  Tab key
         if (e.keyCode == 9) {
           // Shift focus to next INPUT element on page
-          multiselectOptions.next(':input').focus();
+          focusNextInput();
           return true;
         }
       }
@@ -255,6 +272,7 @@ if (jQuery) (function($) {
       if (e.keyCode == 13) return false;
     });
   }
+
 
   // Adjust the viewport if necessary
   function adjustViewPort(multiselectOptions) {
@@ -270,6 +288,7 @@ if (jQuery) (function($) {
       multiselectOptions.scrollTop(multiselectOptions.scrollTop() + multiselectOptions.find('LABEL.hover').position().top);
     }
   }
+
 
   // Update the optgroup checked status
   function updateOptGroup(optGroup) {
@@ -290,10 +309,11 @@ if (jQuery) (function($) {
     }
   }
 
+
   // Update the textbox with the total number of selected items, and determine select all
   function updateSelected() {
     var multiselect = $(this);
-    var multiselectOptions = multiselect.next('.multiselectOptions');
+    var multiselectOptions = multiselect.nextAll('.multiselectOptions:first');
     var o = multiselect.data("config");
 
     var i = 0;
@@ -355,12 +375,18 @@ if (jQuery) (function($) {
       // Initialize each multiselect
       $(this).each(function () {
         var select = $(this);
+        var selectName = $(select).attr('name');
+        if (!selectName) {
+          selectName = $(select).attr('id') + '[]';
+        }
+
         var html = '<a href="javascript:;" class="multiselect"><span></span></a>';
+        html += '<div class="multiselectName" style="display: none;">' + selectName + '</div>';
         html += '<div class="multiselectOptions" style="position: absolute; z-index: 99999; visibility: hidden;"></div>';
         $(select).after(html);
 
         var multiselect = $(select).next('.multiselect');
-        var multiselectOptions = multiselect.next('.multiselectOptions');
+        var multiselectOptions = multiselect.nextAll('.multiselectOptions:first');
 
         // if the select object had a width defined then match the new multilsect to it
         multiselect.find("span").css("width", $(select).width() + 'px');
@@ -434,47 +460,52 @@ if (jQuery) (function($) {
       });
     },
 
+
     // Update the dropdown options
     multiselectOptionsUpdate: function (options) {
       buildOptions.call($(this), options);
     },
 
+
     // Hide the dropdown
     multiselectOptionsHide: function () {
-      $(this).removeClass('active').removeClass('hover').next('.multiselectOptions').css('visibility', 'hidden');
+      $(this).removeClass('active').removeClass('hover').nextAll('.multiselectOptions:first').css('visibility', 'hidden');
     },
+
 
     // Show the dropdown
     multiselectOptionsShow: function () {
       var multiselect = $(this);
-      var multiselectOptions = multiselect.next('.multiselectOptions');
+      var multiselectOptions = multiselect.nextAll('.multiselectOptions:first');
       var o = multiselect.data("config");
 
       // Hide any open option boxes
       $('.multiselect').multiselectOptionsHide();
       multiselectOptions.find('LABEL').removeClass('hover');
-      multiselect.addClass('active').next('.multiselectOptions').css('visibility', 'visible');
+      multiselect.addClass('active').nextAll('.multiselectOptions:first').css('visibility', 'visible');
       multiselect.focus();
 
       // reset the scroll to the top
-      multiselect.next('.multiselectOptions').scrollTop(0);
+      multiselect.nextAll('.multiselectOptions:first').scrollTop(0);
 
       // Position it
       var offset = multiselect.position();
-      multiselect.next('.multiselectOptions').css({ top: offset.top + $(this).outerHeight() + 'px' });
-      multiselect.next('.multiselectOptions').css({ left: offset.left + 'px' });
+      multiselect.nextAll('.multiselectOptions:first').css({ top: offset.top + $(this).outerHeight() + 'px' });
+      multiselect.nextAll('.multiselectOptions:first').css({ left: offset.left + 'px' });
     },
+
 
     // get a coma-delimited list of selected values
     selectedValuesString: function () {
       var selectedValues = "";
-      $(this).next('.multiselectOptions').find('INPUT:checkbox:checked').not('.optGroup, .selectAll').each(function () {
+      $(this).nextAll('.multiselectOptions:first').find('INPUT:checkbox:checked').not('.optGroup, .selectAll').each(function () {
         selectedValues += $(this).attr('value') + ",";
       });
       // trim any end comma and surounding whitespace
       return selectedValues.replace(/\s*\,\s*$/,'');
     }
   });
+
 
   // add a new ":startsWith" search filter
   $.expr[":"].startsWith = function (el, i, m) {
