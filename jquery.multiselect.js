@@ -46,13 +46,13 @@ if (jQuery) (function($) {
 
 
   // Focus next input
-  function focusNextInput() {
+  function focusNextInput(tabEvent) {
     var form = $(this).closest('form');
-    var inputs = $(':input:not(.multiselectOptions input), a.multiselect', form);
+    var inputs = $(':input:visible:not(.multiselectOptions input), a.multiselect', form);
     var nextInputs = inputs.slice(inputs.index($(this)) + 1);
     if (nextInputs) {
       var nextInput = nextInputs[0];
-      e.preventDefault();
+      tabEvent.preventDefault();
       nextInput.focus();
     }
   }
@@ -172,7 +172,7 @@ if (jQuery) (function($) {
         // Tab
         if (e.keyCode == 9) {
           $(this).addClass('focus').trigger('click'); // esc, left, right - hide
-          focusNextInput();
+          focusNextInput.call($(this), e);
           return true;
         }
 
@@ -264,7 +264,7 @@ if (jQuery) (function($) {
         //  Tab key
         if (e.keyCode == 9) {
           // Shift focus to next INPUT element on page
-          focusNextInput();
+          focusNextInput.call($(this), e);
           return true;
         }
       }
