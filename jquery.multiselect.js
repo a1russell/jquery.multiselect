@@ -345,6 +345,16 @@ if (jQuery) (function($) {
     if (o.selectAll) {
       multiselectOptions.find('INPUT.selectAll').attr('checked', selectAll).parent("LABEL").toggleClass('checked', selectAll);
     }
+	
+	// Handle maximum choices number && Callback if reached
+	if (o.maxChoices) {
+		var b = multiselectOptions.find('INPUT:checkbox:checked').not('.optGroup, .selectAll').length >= o.maxChoices;     
+		multiselectOptions.find("INPUT:checkbox").not('.optGroup, .selectAll').not(":checked").attr("disabled", b);
+		if (o.maxChoicesCallback && b === true) {
+			o.maxChoicesCallback();
+		}
+	}
+	
   }
 
 
